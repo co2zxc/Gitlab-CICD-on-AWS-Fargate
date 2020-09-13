@@ -13,6 +13,12 @@
 9. 核准後進行Deploy
 
 ### 安裝Gitlab
+- IAM role
+```bash
+AmazonEC2ContainerRegistryFullAccess
+AmazonEC2ContainerServiceFullAccess
+AmazonECS_FullAccess
+```
 1. Install Docker Engine
 ```bash
 sudo curl -sSL https://get.docker.com/ | sh
@@ -78,5 +84,36 @@ gitlab-ctl reconfigure
 ```bash
 gitlab-rails console
 Notify.test_email('test@test.com', 'gitlab test', 'gitlab test').deliver_now
+```
+### Install GitLab Runner
+1. 先安裝docker
+```bash
+curl -sSL https://get.docker.com/ | sh
+```
+2. Use Docker volumes to start the Runner container
+```bash
+docker volume create gitlab-runner-config
+```
+3. Start the Runner container using the volume we just created:
+```bash
+docker run -d --name gitlab-runner --restart always \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v gitlab-runner-config:/etc/gitlab-runner \
+    gitlab/gitlab-runner:latest
+```
+4. Register the Runner
+- Use Docker-in-Docker with privileged mode
+```bash
+docker run --rm -it -v gitlab-runner-config:/etc/gitlab-runner gitlab/gitlab-runner:latest register
+
+sudo docker exec -it gitlab-runner bash
+###################################
+vi /etc/gitlab-runner/config.toml
+ [runners.docker]
+    privileged = false > 改true
+###################################
+gitlab-runner restart
+exit
+docker run --rm -it -v gitlab-runner-config:/etc/gitlab-runner gitlab/gitlab-runner:latest status
 ```
 
