@@ -20,7 +20,7 @@
 - 請把 gitlab-ci.yml 更名為 .gitlab-ci.yml
 - 建立 ECR
 - 建立 ECS 環境設定
-  - 建立ECS Cluster for Fargate
+  - 建立ECS Cluster of Fargate
   - 建立Task Definitions
  - 填寫 fargate-task.json
  - 修改 .gitlab-ci.yml
