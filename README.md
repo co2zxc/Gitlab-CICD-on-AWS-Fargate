@@ -1,7 +1,10 @@
 # Gitlab-CICD-on-AWS-Fargate
 
-### 使用Gitlab on EC2來進行CICD on AWS Fargate
+- [情境說明](#情境說明)
+- [檔案說明](#檔案說明)
 
+### 情境說明
+- 使用Gitlab on EC2來進行CICD on AWS Fargate
 1. 撰寫Dockerfile、PHP Code(return http 4xx error)
 2. Commit Code
 3. Docker Build
@@ -11,6 +14,16 @@
 7. Docker Build
 8. Test(Pass)
 9. 核准後進行Deploy
+
+### 檔案說明
+
+- 請把 gitlab-ci.yml 更名為 .gitlab-ci.yml
+- 建立 ECR
+- 建立 ECS 環境設定
+  - 建立ECS Cluster for Fargate
+  - 建立Task Definitions
+ - 填寫 fargate-task.json
+ - 修改 .gitlab-ci.yml
 
 ### 安裝Gitlab
 - IAM role
@@ -116,4 +129,3 @@ gitlab-runner restart
 exit
 docker run --rm -it -v gitlab-runner-config:/etc/gitlab-runner gitlab/gitlab-runner:latest status
 ```
-
