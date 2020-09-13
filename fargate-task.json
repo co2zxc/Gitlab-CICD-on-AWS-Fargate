@@ -1,0 +1,24 @@
+{
+    "family": "<TASK_DEFINITION_NAME>", 
+    "networkMode": "awsvpc", 
+    "containerDefinitions": [
+        {
+            "name": "<CONTAINER_NAME>", 
+            "image": "<REPOSITORY_URL>/<CONTAINER_NAME>:<IMAGE_TAG>", 
+            "portMappings": [
+                {
+                    "containerPort": 80, 
+                    "hostPort": 80, 
+                    "protocol": "tcp"
+                }
+            ], 
+            "essential": true
+        }
+    ], 
+    "requiresCompatibilities": [
+        "FARGATE"
+    ], 
+    "cpu": "256",
+    "executionRoleArn": "arn:aws:iam::<account ID>:role/ecsTaskExecutionRole",
+    "memory": "512"
+}
