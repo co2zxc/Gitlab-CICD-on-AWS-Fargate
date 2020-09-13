@@ -1,0 +1,55 @@
+image: "docker:git"
+services:
+- docker:18.06-dind
+
+stages:
+    - build_test_myapp
+    - Deploy_myapp
+
+variables:
+    CONTAINER_NAME: <Docker name>
+    REGION: <us-east-1>
+    REPOSITORY_URL: <Your ECR URL PATH>
+    IMAGE_TAG: latest
+    TASK_DEFINITION_NAME: cicd-test-task
+    CLUSTER_NAME: cicd-cluster
+    SERVICE_NAME: cicd-test-service
+   
+before_script:
+  - apk add --no-cache bash curl jq python3 py3-pip
+  - pip install awscli
+  - export AWS_DEFAULT_REGION="${REGION}"
+  - $(aws ecr get-login --no-include-email --region "${REGION}")
+
+build_test_myapp:
+    stage: build_test_myapp
+    script:
+        - echo "start my job"
+        - docker build -t "${CONTAINER_NAME}" .
+        - docker run -d --name "${CONTAINER_NAME}" -t -i -p 80:80 "${CONTAINER_NAME}"
+        - sleep 5
+        - curl -s -o /dev/null -I -w "%{http_code}" docker:80
+        - chmod +x ./check.sh
+        - ./check.sh
+
+Deploy_myapp:
+    stage: Deploy_myapp
+    script:
+        - echo "start Deploy_myapp"
+        - docker build -t "${CONTAINER_NAME}" .
+        - docker images
+#       - docker push
+        - docker tag "${CONTAINER_NAME}":"${IMAGE_TAG}" "$REPOSITORY_URL"/"${CONTAINER_NAME}":"${IMAGE_TAG}"
+        - docker push $REPOSITORY_URL/"${CONTAINER_NAME}":"${IMAGE_TAG}"
+#       - Updating the service Task Definition
+        - TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "$TASK_DEFINITION_NAME" --region "${REGION}")
+        - NEW_CONTAINER_DEFINTIION=$(echo "$TASK_DEFINITION" | python3 ./parse.py "$REPOSITORY_URL":"${IMAGE_TAG}")
+        - echo "Registering new container definition..."
+        - aws ecs register-task-definition --region "${REGION}" --family "${TASK_DEFINITION_NAME}" --container-definitions "${NEW_CONTAINER_DEFINTIION}" --memory "512"
+        - echo "Updating the service..."
+        - json=$(aws ecs register-task-definition --cli-input-json file://./fargate-task.json)
+#       - Grab revision
+        - revision=$(echo "$json" | grep revision | cut -d ":" -f 2 | cut -d "," -f 1 | cut -d " " -f 2)
+        - echo "$revision"
+        - aws ecs update-service --cluster "${CLUSTER_NAME}" --service "${SERVICE_NAME}" --task-definition "${TASK_DEFINITION_NAME}":"$revision" --force-new-deployment
+    when: manual
