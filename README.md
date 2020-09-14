@@ -22,6 +22,7 @@
 - 建立 ECS 環境設定
   - 建立ECS Cluster of Fargate
   - 建立Task Definitions
+  - create service
  - 填寫 fargate-task.json
  - 修改 .gitlab-ci.yml
 
