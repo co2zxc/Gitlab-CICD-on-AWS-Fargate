@@ -53,3 +53,7 @@ Deploy_myapp:
         - echo "$revision"
         - aws ecs update-service --cluster "${CLUSTER_NAME}" --service "${SERVICE_NAME}" --task-definition "${TASK_DEFINITION_NAME}":"$revision" --force-new-deployment
     when: manual
+    only:        
+        refs: 
+            - master
+
